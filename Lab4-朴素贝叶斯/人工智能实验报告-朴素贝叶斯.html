@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>人工智能实验报告-朴素贝叶斯</title>
+    <style>
+        img {
+            max-width: 95%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        pre, code {
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+        }
+        body {
+            font-family: "SimSun", "STSong", serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #f5f5f5;
+        }
+        .report-container {
+            background-color: #ffffff;
+            padding: 50px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #800000;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            color: #800000;
+            margin: 10px 0;
+            font-size: 28px;
+        }
+        .info-table {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        h2 {
+            color: #800000;
+            border-left: 5px solid #800000;
+            padding-left: 10px;
+            margin-top: 30px;
+            font-size: 22px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        p {
+            text-indent: 2em;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .code-comment {
+            color: #008000;
+        }
+        table.result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table.result-table th, table.result-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        table.result-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="report-container">
+    <div class="header">
+        <p style="text-indent: 0; font-weight: bold;">中山大学计算机学院</p>
+        <h1>人工智能本科生实验报告</h1>
+    </div>
+
+    <table class="info-table" style="text-align: center;">
+        <tr>
+            <td><b>学号</b></td>
+            <td>xxxxxxxx</td>
+            <td><b>姓名</b></td>
+            <td>xxx</td>
+        </tr>
+    </table>
+
+    <h2>一、 实验题目</h2>
+    <p>
+        编写python代码，基于词袋模型与多项式朴素贝叶斯，实现垃圾邮件分类功能。
+    </p>
+
+    <h2>二、 实验内容</h2>
+
+    <h3>1. 算法原理</h3>
+    <p>
+        朴素贝叶斯分类器的实现基于<b>贝叶斯定理</b>和<b>特征条件独立性假设</b>。对于给定的待分类样本 X = (x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>)，算法需要计算其属于每个类别 c<sub>k</sub> 的后验概率 P(c<sub>k</sub> | x)，并选择后验概率最大的类别作为预测结果。
+    </p>
+    <p><b>（1）贝叶斯定理与朴素贝叶斯假设：</b></p>
+    <p>
+        根据贝叶斯定理，后验概率 P(c<sub>k</sub>|x) = P(x|c<sub>k</sub>)·P(c<sub>k</sub>)/P(x)。其中 P(c<sub>k</sub>) 为先验概率，P(x|c<sub>k</sub>) 为似然。朴素贝叶斯的"朴素"即假设所有特征在给定类别的条件下相互独立，即 P(x|c<sub>k</sub>) = P(x<sub>1</sub>|c<sub>k</sub>) · P(x<sub>2</sub>|c<sub>k</sub>)·...·P(x<sub>n</sub>|c<sub>k</sub>)。这一假设虽然在实际中往往不成立，但极大地简化了计算，且在文本分类等任务中表现极佳。
+    </p>
+    <p><b>（2）词袋模型：</b></p>
+    <p>
+        在自然语言处理中，原始文本无法直接输入数学模型，需要转换为数值特征向量。词袋模型将每封邮件表示为一个长度为 |V|（词汇表大小）的向量，其中每个维度对应词汇表中的一个单词，值为该单词在邮件中出现的次数。这种表示方法忽略了单词顺序和语法结构，仅保留词频信息，以此捕捉垃圾邮件的关键特征。
+    </p>
+    <p><b>（3）多项式朴素贝叶斯：</b></p>
+    <p>
+        多项式朴素贝叶斯是朴素贝叶斯在文本分类中最常用的变体。它假设特征（词频）服从多项分布。对于类别 c，单词 w<sub>i</sub> 的条件概率估计为：P(w<sub>i</sub> | c) = (count(w<sub>i</sub>, c) + α) / (∑<sub>w</sub> count(w, c) + α · |V|)。其中 α 为拉普拉斯平滑参数，用于防止训练集中未出现的单词导致零概率问题。当 α = 1 时即为标准的拉普拉斯平滑。
+    </p>
+    <p><b>（4）拉普拉斯平滑：</b></p>
+    <p>
+        如果在训练集中某个单词从未在垃圾邮件中出现过，那么直接使用频率估计会导致 P(w<sub>i</sub>|spam) = 0，进而使得任何包含该单词的邮件被判定为垃圾邮件的概率为 0——这显然不合理。拉普拉斯平滑通过在所有计数上加一个小的常数 α（通常为 1.0），确保每个单词在任何类别下都有一个非零的概率估计，有效缓解了数据稀疏问题。
+    </p>
+
+    <h3>2. 关键代码展示</h3>
+    <p>
+        本实验代码采用模块化设计，核心功能包括数据预处理、特征提取、模型训练和结果评估。
+    </p>
+    <p><b>（1）数据加载与清洗：</b></p>
+    <pre>
+<span class="code-comment"># 加载数据并进行清洗：去空值、去重、文本标准化</span>
+def load_and_clean_data(file_path):
+    df = pd.read_csv(file_path, encoding='latin-1')
+
+    <span class="code-comment"># 仅保留标签和文本两列，去除冗余信息</span>
+    df = df[['v1', 'v2']]
+    df.columns = ['label', 'text']
+
+    <span class="code-comment"># 删除空值和重复样本</span>
+    df = df.dropna().drop_duplicates()
+
+    <span class="code-comment"># 标签二分类：ham:0, spam:1</span>
+    df['label'] = df['label'].map({'ham': 0, 'spam': 1})
+
+    <span class="code-comment"># 文本清洗：去除非字母字符并统一小写</span>
+    df['text'] = df['text'].apply(lambda x: re.sub(r'[^a-zA-Z ]', '', x).lower())
+    
+    <span class="code-comment"># 数据转换为列表，方便处理</span>
+    texts = df['text'].tolist()
+    labels = df['label'].tolist()
+
+    return labels, texts
+    </pre>
+    <p><b>（2）数据集划分与特征提取：</b></p>
+    <p>
+        通过 train_test_split 的 stratify 参数保证训练集与测试集的类别分布一致
+    </p>
+    <p>
+        使用了 scikit-learn 提供的 CountVectorizer 进行词袋特征提取，通过设置 stop_words 自动过滤掉 'the'、'is'、'a' 等无实际语义的停用词
+    </p>
+    <pre>
+<span class="code-comment"># 分层抽样划分训练集和测试集，保证类别比例一致</span>
+<span class="code-comment"># 设置固定随机种子，确保结果可复现性</span>
+def split_dataset(texts, labels, test_size=0.2, random_state=42):
+    X_train, X_test, y_train, y_test = train_test_split(
+        texts, labels, test_size=test_size,
+        random_state=random_state, stratify=labels
+    )
+    return X_train, X_test, y_train, y_test
+
+<span class="code-comment"># 创建词袋模型向量化器，去除英文停用词，提高分类精准度</span>
+def create_bow_features():
+    vectorizer = CountVectorizer(stop_words='english')
+    return vectorizer
+    </pre>
+    <p><b>（3）模型训练与评估：</b></p>
+    <p>
+        使用 MultinomialNB 封装的多项式朴素贝叶斯算法，设置拉普拉斯平滑参数alpha=1.0
+    </p>
+    <pre>
+<span class="code-comment"># 使用多项式朴素贝叶斯进行训练，拉普拉斯平滑参数alpha取1.0</span>
+def train_naive_bayes(X_train, y_train):
+    model = MultinomialNB(alpha=1.0)
+    model.fit(X_train, y_train)
+    return model
+
+<span class="code-comment"># 评估模型：输出准确率、混淆矩阵和分类报告</span>
+def evaluate_model(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    
+    print("\n[4] 模型评估结果：")
+    print(f"    准确率 (Accuracy): {accuracy_score(y_test, y_pred):.4f}")
+    print("\n混淆矩阵:")
+    print(confusion_matrix(y_test, y_pred))
+    print("\n分类报告:")
+    print(classification_report(y_test, y_pred, target_names=['正常邮件(ham)', '垃圾邮件(spam)']))
+    </pre>
+
+    <h3>3. 创新点 & 优化</h3>
+    <p>
+        <b>（1）数据批处理：</b>
+        在数据加载阶段，在代码完成基本的 CSV 读取和分类后，调用了 <code>dropna()</code> 和 <code>drop_duplicates()</code> 有效移除了空值样本和重复样本。同时，通过正则表达式 <code>re.sub(r'[^a-zA-Z ]', '', x)</code> 去除了标点符号、数字等噪声字符，并将所有文本统一转换为小写，避免了同一单词因大小写不同而被视为不同特征的问题。
+    </p>
+    <p>
+        <b>（2）停用词过滤：</b>
+        通过调用 <code>CountVectorizer(stop_words='english')</code> 方法，在构建词袋模型时自动过滤了英语中常见的停用词。这些高频但无语义区分能力的词（如 "the"、"and"、"of"）如果不加过滤，会在特征空间中占据大量维度却对分类贡献甚微。去除停用词后，特征向量能够更有效地捕捉那些真正具有类别区分度的关键词。
+    </p>
+    <p>
+        <b>（3）分层抽样策略：</b>
+        在划分训练集和测试集时，代码调用 <code>stratify=labels</code> 方法进行分层抽样。由于数据集中正常邮件和垃圾邮件的样本量差异极大（ham:spam≈7:1），普通的随机划分可能导致测试集中某一类别的样本过少，从而影响训练及评估的可靠性。分层抽样确保训练集和测试集中两类的比例与原始数据集保持一致，使评估结果更具统计意义。
+    </p>
+
+    <h2>三、 实验结果及分析</h2>
+
+    <h3>1. 实验结果展示</h3>
+
+    <pre>
+============================================================
+多项式朴素贝叶斯 垃圾邮件分类器
+============================================================
+
+[1] 读取数据...
+    有效样本数: 5169
+    ham (正常邮件): 4516
+    spam (垃圾邮件): 653
+
+[2] 划分数据集（测试集比例 = 20%）...
+    训练集大小: 4135
+    测试集大小: 1034
+
+[3] 训练多项式朴素贝叶斯分类器（Laplace 平滑 α=1.0）...
+
+[4]模型评估结果
+准确率 (Accuracy): 0.9787
+
+混淆矩阵:
+      ham  spam
+ham  [896  7  ]
+spam [15   116]
+
+分类报告:
+                   precision    recall  f1-score   support
+
+正常邮件(ham)       0.98        0.99      0.99       903
+垃圾邮件(spam)      0.94        0.89      0.91       131
+
+accuracy                                 0.98      1034
+macro avg          0.96        0.94      0.95      1034
+weighted avg       0.98        0.98      0.98      1034
+    </pre>
+
+    <h3>2. 分析</h3>
+
+
+    <p><b>（1）整体性能：</b>模型在测试集的准确率为97.87%，说明多项式朴素贝叶斯结合词袋模型在垃圾邮件分类任务上具有较为优异的分类能力。</p>
+
+    <p><b>（2）精确率及召回率分析：</b>正常邮件类别的精确率为98%,召回率为99%；垃圾邮件类别的精确率为94%，召回率为89%，说明经过训练后的分类器对于垃圾邮件的分类能力仍不够强大，有将近十分之一的垃圾邮件被当作正常邮件，影响用户体验。</p>
+
+    <p><b>（3）计算效率：</b>朴素贝叶斯模型没有迭代优化过程，参数估计仅需遍历训练集一次即可完成。相比 SVM、NN等方法，在达到相近精度的前提下，朴素贝叶斯在训练速度和内存占用方面具有显著优势，适合于大规模文本分类和实时过滤场景。</p>
+
+    <h2>四、 参考资料</h2>
+    <p style="text-indent: 0;">
+        1. 课程课件：机器学习基础I朴素贝叶斯.pdf<br>
+        2. scikit-learn 官方文档：<a href = "https://scikit-learn.org/stable/">https://scikit-learn.org/stable/</a><br> 
+        3. 数据集来源：<a href = "https://www.kaggle.com/datasets/uciml/sms-spam-collection-dataset">SMS Spam Collection</a> 
+    </p>
+</div>
+
+</body>
+</html>
