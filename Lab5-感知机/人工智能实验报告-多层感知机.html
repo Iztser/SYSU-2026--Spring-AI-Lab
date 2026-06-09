@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>人工智能实验报告-多层感知机</title>
+    <style>
+        img {
+            max-width: 95%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        pre, code {
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: 100% !important;
+        }
+        body {
+            font-family: "SimSun", "STSong", serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #f5f5f5;
+        }
+        .report-container {
+            background-color: #ffffff;
+            padding: 50px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #800000;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            color: #800000;
+            margin: 10px 0;
+            font-size: 28px;
+        }
+        .info-table {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        h2 {
+            color: #800000;
+            border-left: 5px solid #800000;
+            padding-left: 10px;
+            margin-top: 30px;
+            font-size: 22px;
+        }
+        h3 {
+            color: #444;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        p {
+            text-indent: 2em;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .code-comment {
+            color: #008000;
+        }
+        table.result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table.result-table th, table.result-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        table.result-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="report-container">
+    <div class="header">
+        <p style="text-indent: 0; font-weight: bold;">中山大学计算机学院</p>
+        <h1>人工智能本科生实验报告</h1>
+    </div>
+
+    <table class="info-table" style="text-align: center;">
+        <tr>
+            <td><b>学号</b></td>
+            <td>24325147</td>
+            <td><b>姓名</b></td>
+            <td>李宇浩</td>
+        </tr>
+    </table>
+
+    <h2>一、 实验题目</h2>
+    <p>
+        编写 Python 代码，实现多层感知机（MLP）模型，对房价数据集进行回归预测。
+    </p>
+
+    <h2>二、 实验内容</h2>
+
+    <h3>1. 算法原理</h3>
+    <p>
+        <b>多层感知机</b>（Multi-Layer Perceptron, MLP）是最经典的前馈神经网络架构之一。它由输入层、若干隐藏层和输出层组成，层与层之间全连接，每个连接对应一个可学习的权重参数。MLP 通过多层非线性变换，理论上可以逼近任意连续函数，因此广泛应用于分类和回归任务。
+    </p>
+
+    <p><b>（1）神经元模型：</b></p>
+    <p>
+        神经网络的基本单元是“神经元”。一个神经元接收来自上一层所有神经元的输出 x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub>，对每个输入乘以对应的权重 w<sub>1</sub>, w<sub>2</sub>, ..., w<sub>n</sub>，加上偏置 b，然后通过激活函数 σ(·) 得到输出：a = σ(Σ w<sub>i</sub>x<sub>i</sub> + b)。其中，偏置 b 允许神经元在输入全为零时仍能产生非零输出，增强了模型的表达能力。
+    </p>
+
+    <p><b>（2）前向传播：</b></p>
+    <p>
+        给定输入向量 x，前向传播将数据逐层向前传递，最终输出预测值。对于第 l 层，其计算可表示为：
+    </p>
+    <p style="text-indent: 0; text-align: center;">
+        z<sup>(l)</sup> = W<sup>(l)</sup> · a<sup>(l−1)</sup> + b<sup>(l)</sup><br>
+        a<sup>(l)</sup> = σ(z<sup>(l)</sup>)
+    </p>
+    <p>
+        其中 W<sup>(l)</sup> 为第 l 层的权重矩阵（尺寸为 n<sub>l</sub> × n<sub>l−1</sub>），b<sup>(l)</sup> 为偏置向量，σ 为激活函数，a<sup>(0)</sup> 即为输入 x，a<sup>(L)</sup> 为最终输出。
+    </p>
+
+    <p><b>（3）激活函数：</b></p>
+    <p>
+        如果网络中仅有线性变换，多层堆叠等价于单层线性变换，无法拟合非线性函数。激活函数正是为了引入非线性。常用的激活函数包括：
+    </p>
+    <p>
+        <b>Sigmoid：</b>σ(x) = 1/(1 + e<sup>−x</sup>)
+    </p>
+    <p>
+        <b>Tanh：</b>σ(x) = (e<sup>x</sup> − e<sup>−x</sup>)/(e<sup>x</sup> + e<sup>−x</sup>)
+    </p>
+    <p>
+        <b>ReLU：</b>σ(x) = max(0, x)
+    </p>
+
+    <p><b>（4）损失函数：</b></p>
+    <p>
+        损失函数衡量预测值 ŷ 与真实值 y 之间的差距。一种常用的损失函数是均方误差，即 MSE = (1/n) Σ (ŷ - y)<sup>2</sup>。
+    </p>
+
+    <p><b>（5）反向传播：</b></p>
+    <p>
+        反向传播是训练神经网络的核心算法，它利用链式法则高效计算损失函数对每层参数的梯度，首先通过前向传播得到预测值并计算损失 Loss；然后从输出层开始，逐层向后计算损失对各层权重和偏置的偏导数。
+    </p>
+
+    <p><b>（6）梯度下降与参数更新：</b></p>
+    <p>
+        计算出梯度后，需沿梯度的反方向更新参数，使损失函数逐步减小。W = W − η · ∂L/∂W，其中 η 是学习率，控制每次更新的步长。
+    </p>
+
+    <h3>2. 关键代码展示</h3>
+
+    <p><b>（1）数据加载与预处理：</b></p>
+    <pre>
+<span class="code-comment"># 加载数据并进行预处理：Xy分离→缺失值填充/有序特征映射→One-Hot编码→标准化</span>
+def load_and_preprocess_data(file_path):
+    data = pd.read_csv(file_path)
+
+    <span class="code-comment"># 分离特征和目标变量</span>
+    X = data.drop(['Id', 'SalePrice'], axis=1)
+    y_raw = data['SalePrice'].values.reshape(-1, 1)
+
+    <span class="code-comment"># 缺失值填充——使用中位数</span>
+    zero_fill_cols = ['LotFrontage', 'MasVnrArea', 'GarageYrBlt', ...]
+    for col in zero_fill_cols:
+        if col in X.columns:
+            X[col] = X[col].fillna(X[col].median())
+
+    <span class="code-comment"># 有序特征映射：将等级字符串转换为数值</span>
+    qual_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}
+    fin_type_map = {'GLQ': 6, 'ALQ': 5, 'BLQ': 4, 'Rec': 3, 'LwQ': 2, 'Unf': 1, 'NA': 0}
+    <span class="code-comment"># ... 其他映射（BsmtExposure、Functional、GarageFinish）</span>
+    for col, mapping in ordinal_maps.items():
+        if col in X.columns:
+            X[col] = X[col].map(mapping).fillna(0)
+
+    <span class="code-comment"># 无序类别特征进行独热编码</span>
+    categorical_cols = X.select_dtypes(include=[object]).columns
+    remaning_cats = [c for c in categorical_cols if c not in ordinal_maps.keys()]
+    X = pd.get_dummies(X, columns=remaning_cats)
+
+    <span class="code-comment"># 目标值对数变换，缓解右偏分布</span>
+    y = np.log1p(y_raw)
+
+    <span class="code-comment"># 先划分再标准化，避免数据泄露</span>
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    scaler_x = StandardScaler()
+    X_train_scaled = scaler_x.fit_transform(X_train)
+    X_val_scaled = scaler_x.transform(X_val)
+
+    scaler_y = StandardScaler()
+    y_train_scaled = scaler_y.fit_transform(y_train)
+    y_val_scaled = scaler_y.transform(y_val)
+
+    return X_train_scaled, X_val_scaled, y_train_scaled, y_val_scaled, scaler_y
+    </pre>
+
+    <p><b>（2）MLP类：</b></p>
+    <pre>
+<span class="code-comment"># 定义双层隐藏层的 MLP 回归网络：input_dim → 128 → 128 → 1</span>
+class MLP(nn.Module):
+    def __init__(self, input_dim):
+        super(MLP, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, 128),   <span class="code-comment"># 输入层 → 隐藏层1</span>
+            nn.ReLU(),                    <span class="code-comment"># ReLU 激活</span>
+            nn.Linear(128, 128),          <span class="code-comment"># 隐藏层1 → 隐藏层2</span>
+            nn.ReLU(),                    <span class="code-comment"># ReLU 激活</span>
+            nn.Linear(128, 1)             <span class="code-comment"># 隐藏层2 → 输出（回归值）</span>
+        )
+
+    def forward(self, x):
+        return self.net(x)
+    </pre>
+
+    <p><b>（3）训练函数：</b></p>
+    <pre>
+def train_model(model, X_train, y_train, X_val, y_val, epochs=2000, lr=0.001, batch_size=64, patience=500):
+    <span class="code-comment"># 转换为张量并创建 DataLoader</span>
+    X_train_t = torch.FloatTensor(X_train)
+    y_train_t = torch.FloatTensor(y_train)
+    X_val_t = torch.FloatTensor(X_val)
+    y_val_t = torch.FloatTensor(y_val)
+
+    dataset = TensorDataset(X_train_t, y_train_t)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    <span class="code-comment"># Adam 优化器：自适应学习率，结合动量与 RMSprop 优点</span>
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-3)
+    <span class="code-comment"># 均方误差损失</span>
+    criterion = nn.MSELoss()   
+
+    train_history = []
+    val_history = []            
+
+    best_val_loss = float('inf')
+    best_epoch = 0
+    patience_counter = 0
+    best_model_state = None
+
+    for epoch in range(epochs):
+        <span class="code-comment"># 训练阶段：前向传播、计算损失、反向传播、参数更新</span>
+        model.train()
+        for bx, by in loader:
+            optimizer.zero_grad()           <span class="code-comment"># 清空前一步梯度</span>
+            pred = model(bx)                <span class="code-comment"># 前向传播</span>
+            loss = criterion(pred, by)      <span class="code-comment"># 计算 MSE</span>
+            loss.backward()                 <span class="code-comment"># 反向传播，计算梯度</span>
+            optimizer.step()                <span class="code-comment"># Adam 更新参数</span>
+            batch_losses.append(loss.item())
+        train_loss = np.mean(batch_losses)
+
+        <span class="code-comment"># 验证阶段</span>
+        model.eval()
+        with torch.no_grad():
+            val_pred = model(X_val_t)
+            val_loss = criterion(val_pred, y_val_t).item()
+
+        train_history.append(train_loss)
+        val_history.append(val_loss)
+
+        <span class="code-comment"># 早停判断（基于验证损失）</span>
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            best_epoch = epoch
+            patience_counter = 0
+            best_model_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+        else:
+            patience_counter += 1
+
+        if (epoch + 1):
+            print(f"Epoch {epoch+1:3d}: Train Loss={train_loss:.4f}, Val Loss={val_loss:.4f}")
+
+        <span class="code-comment"># 早停触发 </span>
+        if patience_counter >= patience:
+            print(f"Early stopping at epoch {epoch+1}, best val loss = {best_val_loss:.4f} at epoch {best_epoch+1}")
+            break
+
+    <span class="code-comment"># 获取最佳权重</span>
+    if best_model_state is not None:
+        model.load_state_dict(best_model_state)
+    print(f"Training finished. Best validation loss: {best_val_loss:.4f}")
+
+    return train_history, val_history
+    </pre>
+
+    <h3>3. 创新点 & 优化</h3>
+    <p>
+        <b>（1）数据处理：</b>
+        对数字型特征进行中位数填充，更好的表示数据的中心趋势；对有序类文本特征进行映射，将特征映射为数值型，增强模型的稠密度；对无需类文本特征进行One-Hot编码，将模型无法理解的文字转化为可计算的数字。
+    </p>
+    <p>
+        <b>（2）对数变换：</b>
+        房价数据通常呈现右偏分布——极少数豪宅的价格远高于普通住宅。直接对原始价格进行回归，MSE 损失会被这些极端值影响，导致模型在中高等价位房屋上预测偏差较大。代码使用 <code>np.log1p(y)</code> 对目标变量取对数，使分布更接近正态分布，训练更加稳定。在预测阶段通过 <code>np.expm1()</code> 进行反变换恢复为原价格，保证了最终结果的可用性。
+    </p>
+    <p>
+        <b>（3）数据集划分及标准化：</b>
+        代码先进行 train_test_split 将数据集分为训练集和验证集，再用训练集的均值和标准差去变换验证集。如果先进性标准化再进行划分，则会导致验证集信息泄露到训练集中，使得验证评估结果出现偏差，无法真实反映模型的泛化能力。
+    </p>
+    <p>
+        <b>（4）早停机制与最佳模型恢复：</b>
+        代码引入了早停策略：训练过程中持续记录验证损失的最小值，若连续 patience 个 epoch 未见改善则提前终止训练，并加载回验证损失最小的模型权重。这既节省了训练时间，也自动确定了最佳的训练轮数，避免了欠拟合或过拟合。
+    </p>
+    <p>
+        <b>（5）Adam 优化器 + L2 正则化：</b>
+        Adam 优化器自适应调整学习率，省去了手动调参的繁琐；weight_decay=1e-3 通过 L2 正则化约束权重大小，有效抑制过拟合。
+    </p>
+
+    <h2>三、 实验结果及分析</h2>
+
+    <h3>1. 实验结果展示</h3>
+    <p>运行 MLP.py，结果如下：</p>
+    <p>epoch = 200, 显示轮次间隔 = 20，早停轮次 = 0，未对数化：</p>
+
+    <pre>
+Epoch  20: Train Loss=0.0125, Val Loss=0.1263
+Epoch  40: Train Loss=0.0068, Val Loss=0.1275
+Epoch  60: Train Loss=0.0057, Val Loss=0.1214
+Epoch  80: Train Loss=0.0078, Val Loss=0.1308
+Epoch 100: Train Loss=0.0073, Val Loss=0.1278
+Epoch 120: Train Loss=0.0033, Val Loss=0.1232
+Epoch 140: Train Loss=0.0028, Val Loss=0.1235
+Epoch 160: Train Loss=0.0129, Val Loss=0.1329
+Epoch 180: Train Loss=0.0031, Val Loss=0.1214
+Epoch 200: Train Loss=0.0016, Val Loss=0.1219
+    </pre>
+    
+    <img src="Figure_1.png" style="width:750px;">
+    
+    <p>epoch = 50, 显示轮次间隔 = 1，早停轮次 = 20，已对数化：</p>
+    <pre>
+Epoch   1: Train Loss=0.5195, Val Loss=0.2047
+Epoch   2: Train Loss=0.1507, Val Loss=0.1814
+Epoch   3: Train Loss=0.0908, Val Loss=0.1392
+Epoch   4: Train Loss=0.0693, Val Loss=0.1340
+Epoch   5: Train Loss=0.0500, Val Loss=0.1157
+Epoch   6: Train Loss=0.0419, Val Loss=0.1108
+Epoch   7: Train Loss=0.0384, Val Loss=0.1116
+Epoch   8: Train Loss=0.0338, Val Loss=0.1072
+Epoch   9: Train Loss=0.0313, Val Loss=0.1118
+Epoch  10: Train Loss=0.0263, Val Loss=0.1102
+Epoch  11: Train Loss=0.0238, Val Loss=0.1109
+Epoch  12: Train Loss=0.0256, Val Loss=0.1067
+Epoch  13: Train Loss=0.0222, Val Loss=0.1116
+Epoch  14: Train Loss=0.0189, Val Loss=0.1068
+Epoch  15: Train Loss=0.0172, Val Loss=0.1062
+Epoch  16: Train Loss=0.0156, Val Loss=0.1031
+Epoch  17: Train Loss=0.0140, Val Loss=0.1086
+Epoch  18: Train Loss=0.0144, Val Loss=0.1063
+Epoch  19: Train Loss=0.0131, Val Loss=0.1123
+Epoch  20: Train Loss=0.0113, Val Loss=0.1059
+Epoch  21: Train Loss=0.0108, Val Loss=0.1052
+Epoch  22: Train Loss=0.0111, Val Loss=0.1074
+Epoch  23: Train Loss=0.0089, Val Loss=0.1046
+Epoch  24: Train Loss=0.0092, Val Loss=0.1110
+Epoch  25: Train Loss=0.0088, Val Loss=0.1041
+Epoch  26: Train Loss=0.0094, Val Loss=0.1113
+Epoch  27: Train Loss=0.0088, Val Loss=0.1022
+Epoch  28: Train Loss=0.0088, Val Loss=0.1123
+Epoch  29: Train Loss=0.0078, Val Loss=0.1087
+Epoch  30: Train Loss=0.0082, Val Loss=0.1107
+Epoch  31: Train Loss=0.0084, Val Loss=0.1109
+Epoch  32: Train Loss=0.0070, Val Loss=0.1095
+Epoch  33: Train Loss=0.0064, Val Loss=0.1091
+Epoch  34: Train Loss=0.0072, Val Loss=0.1066
+Epoch  35: Train Loss=0.0082, Val Loss=0.1106
+Epoch  36: Train Loss=0.0112, Val Loss=0.1103
+Epoch  37: Train Loss=0.0085, Val Loss=0.1123
+Epoch  38: Train Loss=0.0084, Val Loss=0.1035
+Epoch  39: Train Loss=0.0123, Val Loss=0.1168
+Epoch  40: Train Loss=0.0117, Val Loss=0.1037
+Epoch  41: Train Loss=0.0080, Val Loss=0.1098
+Epoch  42: Train Loss=0.0077, Val Loss=0.1090
+Epoch  43: Train Loss=0.0054, Val Loss=0.1099
+Epoch  44: Train Loss=0.0049, Val Loss=0.1048
+Epoch  45: Train Loss=0.0044, Val Loss=0.1107
+Epoch  46: Train Loss=0.0051, Val Loss=0.1072
+Epoch  47: Train Loss=0.0073, Val Loss=0.1089
+Early stopping at epoch 47, best val loss = 0.1022 at epoch 27
+Training finished. Best validation loss: 0.1022       
+    </pre>
+
+    <img src="Figure_2.png" style="width:750px;">
+
+    <h3>2. 实验结果分析</h3>
+
+    <p><b>学习曲线（Learning Curves）：</b></p>
+    <p>
+        训练损失和验证损失均在最初几轮迅速下降，随后趋于平稳，从第二次运行结果的停止轮以及早停延迟可以看出，在十余次迭代后模型便趋近极值。对数化前，验证损失在趋近0.12，对数化后，验证损失明显降低至0.10-0.11，但均与训练损失差距较大，说明模型疑似出现过拟合现象。振荡来自于 Mini-Batch SGD 的随机性，这是正常的训练现象。
+    </p>
+
+    <p><b>预测值-真实值散点图：</b></p>
+    <p>
+        散点图显示大部分数据点紧密分布在 y=x 红线附近，说明模型对中等价位（$100,000 ~ $300,000）房屋的预测较为准确。在高价位区域（>$400,000），数据点开始发散，预测误差有所增大，但是处于此区间的样本数量较少，这是房价数据本身的稀疏性和高方差特性所导致的。
+    </p>
+
+    <h2>四、 参考资料</h2>
+    <p style="text-indent: 0;">
+        1. 课程课件：感知机.pdf<br>
+        2. PyTorch 官方文档：<a href="https://pytorch.org/docs/stable/index.html">https://pytorch.org/docs/stable/index.html</a><br>
+        3. 数据集来源（Kaggle - House Prices）：<a href="https://www.kaggle.com/c/house-prices-advanced-regression-techniques">https://www.kaggle.com/c/house-prices-advanced-regression-techniques</a><br>
+    </p>
+</div>
+
+</body>
+</html>
